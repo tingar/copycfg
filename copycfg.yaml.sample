@@ -5,15 +5,15 @@
 
 
 ldap:
-  base: ou=Netgroup,dc=example
+  base: "ou=Netgroup,dc=example"
   connection:
-    host: ldap.example.com
-    port: 389
-    encryption: simple_tls
-    auth:
-      method: simple
-      username: user
-      password: pass
+    !ruby/sym host: "ldap.example.com"
+    !ruby/sym port: 636
+    !ruby/sym auth:
+      !ruby/sym method: !ruby/sym simple
+      !ruby/sym username: "uid=user,ou=Netgroup,dc=example"
+      !ruby/sym password: "pass"
+    !ruby/sym encryption: !ruby/sym simple_tls
 
 filegroups:
   default:
