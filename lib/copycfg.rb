@@ -5,6 +5,7 @@
 # This provides a singleton class that stores settings that need to be shared 
 # across the entire application.
 
+require "logger"
 require "yaml"
 
 module Copycfg
@@ -27,7 +28,7 @@ module Copycfg
     end
 
     def loadconfig yamlfile
-      @config = YAML::load yamlfile
+      File.open(yamlfile) { | yf | @config = YAML::load yf }
     end
 
     def unshareall

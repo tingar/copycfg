@@ -13,36 +13,35 @@ class Copycfg::Netgroup
 
   def initialize netgroupname
     @name = netgroupname
-    @ldap = Net::Ldap.new
+    @ldap = Net::LDAP.new( Copycfg.config["ldap"]["connection"] )
     @hosts = []
   end
 
-  # All ldap configuration options are serialized in ruby. When they're
-  # unserialized, you can drop them straight into the open call.
-  def bind
-    @ldap.open Copycfg.config[:ldap][:connection]
-  end
 
-  def query
+  def gethosts
 
     filter = Net::LDAP::Filter.eq("cn", @name)
 
     attrs = %w[ nisNetgroupTriple memberNisNetgroup ]
 
-    @ldap.search( :base => Copycfg.config[:ldap][:base], 
+    @ldap.search( :base => Copycfg.config["ldap"]["base"],
                   :filter => filter, 
                   :attributes => attrs) do | entry |
 
       entry["nisNetgroupTriple"].each do | triple |
-        puts triple
+        if triple =~ /\(([^,]+),-,\)/
+          @hosts << $1
+        end
       end
 
       entry["memberNisNetgroup"].each do | member |
-        puts member
+        # It's objects all the way down!
+        # AKA create and query all member netgroups, and add their hosts.
+        @hosts << Copycfg::Netgroup.new(member).gethosts
       end
-
 
     end
 
+    @hosts
   end
 end

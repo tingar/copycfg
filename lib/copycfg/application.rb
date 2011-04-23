@@ -6,6 +6,8 @@
 # as a standalone application
 
 require "optparse"
+require "copycfg"
+require "copycfg/netgroup"
 
 module Copycfg::Application
 
@@ -37,9 +39,10 @@ module Copycfg::Application
 
       netgroups.each do | netgroupname |
 
-      netgroup = Copycfg::Netgroup.new netgroupname
+        netgroup = Copycfg::Netgroup.new netgroupname
 
-      netgroup.copy
+        puts netgroup.gethosts
+      end
 
       $stderr.puts "Copycfg::Application.copy: not implemented"
       exit 1
@@ -100,3 +103,4 @@ module Copycfg::Application
       options
     end
   end
+end
