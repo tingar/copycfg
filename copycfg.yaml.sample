@@ -3,12 +3,17 @@
 # 
 # This is really a prototype for me to sketch out design ideas
 
+
 ldap:
-  host: ldap.example.com
-  port: 389
-  basedn: ou=Netgroup,dc=example
-  username: user
-  password: pass
+  base: ou=Netgroup,dc=example
+  connection:
+    host: ldap.example.com
+    port: 389
+    encryption: simple_tls
+    auth:
+      method: simple
+      username: user
+      password: pass
 
 filegroups:
   default:
