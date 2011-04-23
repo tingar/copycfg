@@ -1,0 +1,29 @@
+---
+# Example copycfg.yaml
+# 
+# This is really a prototype for me to sketch out design ideas
+
+ldap:
+  host: ldap.example.com
+  port: 389
+  basedn: ou=Netgroup,dc=example
+  username: user
+  password: pass
+
+filegroups:
+  default:
+    - /etc/derp
+    - /etc/blargh
+  bees:
+    - /etc/bees
+
+hosts:
+  "anaphylacticshock.example.com":
+    filegroups:
+      - default
+      - bees
+    files:
+      - /etc/csh
+      - /etc/slogin
+    
+
