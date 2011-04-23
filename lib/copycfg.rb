@@ -5,8 +5,13 @@
 # This provides a singleton class that stores settings that need to be shared 
 # across the entire application.
 
+require "yaml"
+
 module Copycfg
   class << self
+
+    # Configuration from YAML
+    attr_reader :config
 
     # Allow other classes to use a single logger 
     attr_reader :logger 
@@ -21,8 +26,8 @@ module Copycfg
       @logger.datetime_format = "%Y-%m-%d %H:%M:%S"
     end
 
-    def readconfig yamlfile
-
+    def loadconfig yamlfile
+      @config = YAML::load yamlfile
     end
 
     def unshareall
@@ -30,6 +35,5 @@ module Copycfg
         %x{unshare "#{dir}" > /dev/null 2>&1} 
       end
     end
-
   end
 end

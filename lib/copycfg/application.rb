@@ -1,4 +1,4 @@
-# Copycfg
+# Copycfg::Application
 # Computer Action Team
 # Maseeh College of Engineering and Computer Science
 # 
@@ -19,13 +19,13 @@ module Copycfg::Application
       Copycfg.loglevel = options[:verbosity]
 
       if options[:configfile]
-        Copycfg.readconfig options[:configfile]
+        Copycfg.loadconfig options[:configfile]
       else
-        Copycfg.readconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
+        Copycfg.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
       end
 
-      if options[:netgroup] 
-        self.copy
+      if options[:netgroups] 
+        self.copy options[:netgroups]
       end
 
       if options[:share] 
@@ -33,7 +33,14 @@ module Copycfg::Application
       end
     end
 
-    def copy
+    def copy netgroups
+
+      netgroups.each do | netgroupname |
+
+      netgroup = Copycfg::Netgroup.new netgroupname
+
+      netgroup.copy
+
       $stderr.puts "Copycfg::Application.copy: not implemented"
       exit 1
     end
@@ -47,7 +54,7 @@ module Copycfg::Application
     def parse(args)
       options = {}
       options[:verbosity] = Logger::ERROR
-      options[:netgroup]  = []
+      options[:netgroups]  = []
 
       opt_parser = OptionParser.new do |opts|
         opts.banner = "#{$0} [options]" 
@@ -57,7 +64,7 @@ module Copycfg::Application
         end
 
         opts.on('-n', '--netgroup=val', 'Netgroup to copycfg-ify' ) do |netgroup|
-          options[:netgroup] << netgroup
+          options[:netgroups] << netgroup
         end
 
         opts.on('-s', '--share', 'Share all hosts' ) do
@@ -84,7 +91,7 @@ module Copycfg::Application
       end
 
       # Ensure that we have at least one netgroup and we're not just resharing
-      if options[:netgroup].length <= 0 and not options[:share]
+      if options[:netgroups].length <= 0 and not options[:share]
         $stderr.puts "Error: at least one netgroup must be specified."
         puts opt_parser
         exit 1

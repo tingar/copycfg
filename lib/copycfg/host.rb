@@ -1,8 +1,12 @@
+# Copycfg::Host
+# Computer Action Team
+# Maseeh College of Engineering and Computer Science
+# 
+# Provides for an individual host to copy
 class Copycfg::Host
 
-  def initialize(hostname, savedir)
+  def initialize hostname
     @hostname = hostname
-    @savedir  = "#{savedir}/#{hostname}"
     @files    = []
   end
 
