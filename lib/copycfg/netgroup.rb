@@ -11,9 +11,9 @@ class Copycfg::Netgroup
 
   attr_reader :hosts
 
-  def initialize netgroupname
+  def initialize netgroupname, auth
     @name = netgroupname
-    @ldap = Net::LDAP.new( Copycfg.config["ldap"]["connection"] )
+    @ldap = Net::LDAP.new(auth)
     @hosts = []
   end
 
@@ -31,6 +31,8 @@ class Copycfg::Netgroup
       entry["nisNetgroupTriple"].each do | triple |
         if triple =~ /\(([^,]+),-,\)/
           @hosts << $1
+        else
+          Copycfg.logger.info { "Got mangled nisNetgroupTriple: #{triple}"}
         end
       end
 

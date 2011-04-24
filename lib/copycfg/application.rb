@@ -23,6 +23,7 @@ module Copycfg::Application
       if options[:configfile]
         Copycfg.loadconfig options[:configfile]
       else
+        # TODO figure out a sensible place for a default config. Homedir
         Copycfg.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
       end
 
@@ -39,7 +40,7 @@ module Copycfg::Application
 
       netgroups.each do | netgroupname |
 
-        netgroup = Copycfg::Netgroup.new netgroupname
+        netgroup = Copycfg::Netgroup.new netgroupname, Copycfg.config["ldap"]["connection"]
 
         puts netgroup.gethosts
       end
