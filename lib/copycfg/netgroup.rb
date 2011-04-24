@@ -13,6 +13,7 @@ class Copycfg::Netgroup
 
   def initialize netgroupname, auth
     @name = netgroupname
+    @auth = auth
     @ldap = Net::LDAP.new(auth)
     @hosts = []
   end
@@ -39,11 +40,11 @@ class Copycfg::Netgroup
       entry["memberNisNetgroup"].each do | member |
         # It's objects all the way down!
         # AKA create and query all member netgroups, and add their hosts.
-        @hosts << Copycfg::Netgroup.new(member).gethosts
+        @hosts += Copycfg::Netgroup.new(member, @auth).gethosts
       end
 
     end
 
-    @hosts
+    @hosts.sort!
   end
 end
