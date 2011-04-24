@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'copycfg/application'
+Copycfg::Application.run(ARGV)
