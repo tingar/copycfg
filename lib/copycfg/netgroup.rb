@@ -31,7 +31,7 @@ class Copycfg::Netgroup
 
       entry["nisNetgroupTriple"].each do | triple |
         if triple =~ /\(([^,]+),-,\)/
-          @hosts << $1
+          @hosts += $1
         else
           Copycfg.logger.info { "Got mangled nisNetgroupTriple: #{triple}"}
         end
