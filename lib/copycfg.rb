@@ -6,13 +6,9 @@
 # across the entire application.
 
 require "logger"
-require "yaml"
 
 module Copycfg
   class << self
-
-    # Configuration from YAML
-    attr_reader :config
 
     # Allow other classes to use a single logger
     attr_reader :logger
@@ -25,10 +21,6 @@ module Copycfg
       @logger = Logger.new(STDOUT)
       @logger.level = Logger::ERROR
       @logger.datetime_format = "%Y-%m-%d %H:%M:%S"
-    end
-
-    def loadconfig yamlfile
-      File.open(yamlfile) { | yf | @config = YAML::load yf }
     end
 
     def unshareall

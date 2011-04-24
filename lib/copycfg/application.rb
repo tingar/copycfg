@@ -8,6 +8,8 @@
 require "optparse"
 require "copycfg"
 require "copycfg/netgroup"
+require "copycfg/config"
+require "copycfg/host"
 
 module Copycfg::Application
 
@@ -21,32 +23,31 @@ module Copycfg::Application
       Copycfg.loglevel = options[:verbosity]
 
       if options[:configfile]
-        Copycfg.loadconfig options[:configfile]
+        Copycfg::Config.loadconfig options[:configfile]
       else
         # TODO figure out a sensible place for a default config. Homedir
-        Copycfg.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
+        Copycfg::Config.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
       end
 
       if options[:netgroups] 
-        self.copy options[:netgroups]
+        copy_netgroup options[:netgroups]
       end
 
       if options[:share] 
-        self.share
+        share
       end
     end
 
-    def copy netgroups
+    def copy_netgroup netgroups
 
       netgroups.each do | netgroupname |
 
-        netgroup = Copycfg::Netgroup.new netgroupname, Copycfg.config["ldap"]["connection"]
+        netgroup = Copycfg::Netgroup.new(netgroupname, Copycfg::Config["ldap"]["connection"])
         hosts = netgroup.gethosts
 
-
         hosts.each do | host |
-          host = Copycfg::host.new(host)
-          host.
+          host = Copycfg::Host.new(host)
+          host.files = Copycfg::Config.filelist(host)
         end
 
       end

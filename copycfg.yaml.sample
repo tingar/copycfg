@@ -3,6 +3,8 @@
 # 
 # This is really a prototype for me to sketch out design ideas
 
+basedir: /srv/copycfg/hosts
+
 
 ldap:
   base: "ou=Netgroup,dc=example"

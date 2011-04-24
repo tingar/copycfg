@@ -25,13 +25,13 @@ class Copycfg::Netgroup
 
     attrs = %w[ nisNetgroupTriple memberNisNetgroup ]
 
-    @ldap.search( :base => Copycfg.config["ldap"]["base"],
+    @ldap.search( :base => Copycfg::Config["ldap"]["base"],
                   :filter => filter, 
                   :attributes => attrs) do | entry |
 
       entry["nisNetgroupTriple"].each do | triple |
         if triple =~ /\(([^,]+),-,\)/
-          @hosts += $1
+          @hosts << $1
         else
           Copycfg.logger.info { "Got mangled nisNetgroupTriple: #{triple}"}
         end
