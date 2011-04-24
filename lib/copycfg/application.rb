@@ -41,12 +41,17 @@ module Copycfg::Application
       netgroups.each do | netgroupname |
 
         netgroup = Copycfg::Netgroup.new netgroupname, Copycfg.config["ldap"]["connection"]
+        hosts = netgroup.gethosts
 
-        puts netgroup.gethosts
+
+        hosts.each do | host |
+          host = Copycfg::host.new(host)
+          host.
+        end
+
       end
 
-      $stderr.puts "Copycfg::Application.copy: not implemented"
-      exit 1
+      raise NotImplementedError
     end
 
     def share

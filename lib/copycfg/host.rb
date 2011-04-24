@@ -5,21 +5,22 @@
 # Provides for an individual host to copy
 class Copycfg::Host
 
+  attr_writer :files
+
   def initialize hostname
     @hostname = hostname
     @files    = []
   end
 
   def share
-    $stderr.puts "Copycfg::Host share not implemented"
+    raise NotImplementedError
   end
 
   def backup
-    $stderr.puts "Copycfg::Host backup not implemented"
+    raise NotImplementedError
   end
 
   def copy
-    $stderr.puts "Copycfg::Host copy not implemented"
-    false
+    raise NotImplementedError
   end
 end
