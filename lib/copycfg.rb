@@ -1,8 +1,8 @@
 # Copycfg
 # Computer Action Team
 # Maseeh College of Engineering and Computer Science
-# 
-# This provides a singleton class that stores settings that need to be shared 
+#
+# This provides a singleton class that stores settings that need to be shared
 # across the entire application.
 
 require "logger"
@@ -14,8 +14,8 @@ module Copycfg
     # Configuration from YAML
     attr_reader :config
 
-    # Allow other classes to use a single logger 
-    attr_reader :logger 
+    # Allow other classes to use a single logger
+    attr_reader :logger
     attr_accessor :loglevel
 
     # The base directory in which to store all configs
@@ -32,8 +32,8 @@ module Copycfg
     end
 
     def unshareall
-      Dir.foreach "#{@basedir}/hosts" do | dir | 
-        %x{unshare "#{dir}" > /dev/null 2>&1} 
+      Dir.foreach "#{@basedir}/hosts" do | dir |
+        %x{unshare "#{dir}" > /dev/null 2>&1}
       end
     end
   end
