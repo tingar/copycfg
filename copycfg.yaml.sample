@@ -5,6 +5,10 @@
 
 basedir: /srv/copycfg/hosts
 
+sftp:
+  user: root
+  key: /srv/copycfg/.ssh/id_rsa
+
 
 ldap:
   base: "ou=Netgroup,dc=example"

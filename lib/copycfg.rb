@@ -14,9 +14,6 @@ module Copycfg
     attr_reader :logger
     attr_accessor :loglevel
 
-    # The base directory in which to store all configs
-    attr_accessor :basedir
-
     def initialize
       @logger = Logger.new(STDOUT)
       @logger.level = Logger::ERROR
@@ -24,9 +21,10 @@ module Copycfg
     end
 
     def unshareall
-      Dir.foreach "#{@basedir}/hosts" do | dir |
+      Dir.foreach Copycfg::Config["basedir"] do | dir |
         %x{unshare "#{dir}" > /dev/null 2>&1}
       end
     end
+
   end
 end
