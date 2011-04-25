@@ -47,7 +47,8 @@ module Copycfg::Application
 
         hosts.each do | host |
           host = Copycfg::Host.new(host)
-          host.files = Copycfg::Config.filelist(host)
+          host.files = Copycfg::Config.filelist(host.name)
+          host.copy
         end
 
       end
