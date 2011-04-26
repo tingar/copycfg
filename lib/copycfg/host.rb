@@ -12,13 +12,11 @@ class Copycfg::Host
   attr_reader :name
   attr_writer :files
 
-  def initialize hostname
+  def initialize hostname, basedir
     @name       = hostname
     @files      = []
-    @destdir    = "#{Copycfg.config["basedir"]}/hosts/#{@name}"
-    @backupdir  = "#{Copycfg.config["basedir"]}/backups/#{@name}"
-    # TODO Hardcoding this seems less than preferential
-
+    @destdir    = "#{@basedir}/hosts/#{@name}"
+    @backupdir  = "#{@basedir}/backups/#{@name}"
   end
 
   # Creates a lists of files from copycfg yaml

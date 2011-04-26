@@ -48,7 +48,7 @@ module Copycfg::Application
 
         hosts.each do | host |
           Copycfg.logger.info { "Copying #{host}" }
-          host = Copycfg::Host.new(host)
+          host = Copycfg::Host.new(host, Copycfg.config["basedir"])
           host.files_from_yaml Copycfg.config
           host.copy
         end
