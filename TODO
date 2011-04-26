@@ -2,9 +2,5 @@ Pruning:
   - Needs to support a prune option
   - Specify a list of netgroups, and remove everything not in a netgroup
   - Have a --backups option to prune backups as well. Maybe.
-Sharing:
-  - Needs to be implemented
-Single host copying:
-  - Needs to be implemented
 Configuration:
   - Needs default configuration location
