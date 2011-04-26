@@ -3,6 +3,8 @@
 # 
 # This is really a prototype for me to sketch out design ideas
 
+hostexpiration: 7
+
 basedir: /srv/copycfg/hosts
 
 sftp:
