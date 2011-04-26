@@ -22,15 +22,16 @@ module Copycfg::Application
       Copycfg.logger.level = options[:verbosity]
       Copycfg.loadconfig options[:configfile]
 
-      if options[:actions].include? "share"
-        Copycfg.shareall
-      end
-      if options[:actions].include? "unshare"
-        Copycfg.unshareall
-      end
-      if options[:actions].include? "copy"
-        options[:netgroups].each { | ng | copy_netgroup ng }
-        options[:hosts].each { | h | copy_host h }
+      options[:actions].each do | action |
+        case action
+        when "share"
+          Copycfg.shareall
+        when "unshare"
+          Copycfg.unshareall
+        when "copy"
+          options[:netgroups].each { | ng | copy_netgroup ng }
+          options[:hosts].each { | h | copy_host h }
+        end
       end
     end
 
@@ -105,6 +106,12 @@ module Copycfg::Application
       # Ensure that we have at least one netgroup and we're not just resharing
       unless options[:actions]
         $stderr.puts "Error: no operation specified"
+        puts opt_parser
+        exit 1
+      end
+
+      if options[:actions] and options[:netgroups].empty? and options[:hosts].empty?
+        $stderr.puts "Error: copy must be called with one or more netgroup or host"
         puts opt_parser
         exit 1
       end
