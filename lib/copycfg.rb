@@ -32,14 +32,17 @@ module Copycfg
 
 
     def unshareall
-      Dir.foreach "#{@config["basedir"]}/hosts" do | dir |
+      Dir.foreach "#{@config["basedir"]}/hosts" do | host |
+        dir = "#{@config["basedir"]}/hosts/#{host}"
+        @logger.debug { %Q{unshare "#{dir}" > /dev/null 2>&1} }
         %x{unshare "#{dir}" > /dev/null 2>&1}
       end
     end
 
     def shareall
-      Dir.foreach "#{@config["basedir"]}/hosts" do | dir |
-        host = File.dirname dir
+      Dir.foreach "#{@config["basedir"]}/hosts" do | host |
+        dir = "#{@config["basedir"]}/hosts/#{host}"
+        @logger.debug { %Q{share -F nfs -o sec=sys,ro=#{host},anon=0 #{dir} > /dev/null 2>&1} }
         %x{share -F nfs -o sec=sys,ro=#{host},anon=0 #{dir} > /dev/null 2>&1}
       end
     end

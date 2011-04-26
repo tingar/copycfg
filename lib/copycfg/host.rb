@@ -16,8 +16,8 @@ class Copycfg::Host
     @name       = hostname
     @files      = []
     @sftpopts   = sftpopts
-    @destdir    = "#{@basedir}/hosts/#{@name}"
-    @backupdir  = "#{@basedir}/backups/#{@name}"
+    @destdir    = "#{basedir}/hosts/#{@name}"
+    @backupdir  = "#{basedir}/backups/#{@name}"
   end
 
   def share
@@ -48,13 +48,13 @@ class Copycfg::Host
     end
 
     if @files.empty?
-      Copycfg.logger.debug { "#{host} has no specific configuration files, using filegroup default" }
+      Copycfg.logger.debug { "#{@name} has no specific configuration files, using filegroup default" }
       @files += config["filegroups"]["default"]
     end
   end
 
   def expired? days
-    if completed? and File.stat("#{@destdir}/.completed").ctime < (Time.now - 60*60*24*days)
+    completed? and File.stat("#{@destdir}/.completed").ctime < (Time.now - 60*60*24*days)
   end
 
   def completed?
@@ -67,18 +67,35 @@ class Copycfg::Host
 
   def backup
     if completed?
-      FileUtils.cp_r "#{@destdir}/.", @backupdir, :preserve => true
+      if File.exist? @backupdir
+        FileUtils.rm_r @backupdir, :secure => true, :force => true
+      else
+        FileUtils.mkdir_p File.dirname @backupdir
+      end
+      FileUtils.mv @destdir, @backupdir
     end
   end
+
+  def restore
+    if File.exist? "#{@backupdir}/.completed"
+      FileUtils.cp_r "#{@backupdir}/.", @destdir, { :preserve => true }
+    end
+  end
+
 
   # Attempts to connect to a host and then run a copy on every file.
   def copy
 
+    backup
+
     begin
-      Net::SFTP.start(@name, @sftpopts["user"],
-                      :auth_methods => ["publickey"],
-                      :keys => [@sftpopts["key"]],
-                      :timeout => 1) do |sftp|
+      Net::SFTP.start(
+        @name,
+        @sftpopts["user"],
+        :auth_methods => ["publickey"],
+        :keys => [@sftpopts["key"]],
+        :timeout => 1
+       ) do |sftp|
 
         Copycfg.logger.debug { "Connected to #{@name}" }
         @files.each do | file |
@@ -96,6 +113,7 @@ class Copycfg::Host
 
     if not completed?
       removeconfigs
+      restore
     end
   end
 

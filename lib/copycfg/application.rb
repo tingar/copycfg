@@ -28,7 +28,10 @@ module Copycfg::Application
       end
 
       if options[:share]
-        share
+        Copycfg.shareall
+      end
+      if options[:unshare]
+        Copycfg.unshareall
       end
     end
 
@@ -48,10 +51,6 @@ module Copycfg::Application
         end
 
       end
-    end
-
-    def share
-      Copycfg.shareall
     end
 
     # Provide default arguments, parse args, and validate them
@@ -75,6 +74,10 @@ module Copycfg::Application
           options[:share] = true
         end
 
+        opts.on('-u', '--unshare', 'Unshare all hosts' ) do
+          options[:unshare] = true
+        end
+
         opts.on('-v', '--verbose', 'Increase verbosity' ) do
           options[:verbosity] -= 1
         end
@@ -95,8 +98,8 @@ module Copycfg::Application
       end
 
       # Ensure that we have at least one netgroup and we're not just resharing
-      if options[:netgroups].length <= 0 and not options[:share]
-        $stderr.puts "Error: at least one netgroup must be specified."
+      if options[:netgroups].length <= 0 and not options[:share] and not options[:unshare]
+        $stderr.puts "Error: nothing to do, no operation specified"
         puts opt_parser
         exit 1
       end
