@@ -5,7 +5,6 @@
 # This provides a singleton class to manage the copycfg configuration data.
 # Has things like helpers for specific configuration classes
 
-require "pp"
 require "yaml"
 
 module Copycfg::Config
@@ -18,10 +17,6 @@ module Copycfg::Config
     # Loads configuration
     def loadconfig yamlfile
       File.open(yamlfile) { | yf | @config = YAML::load yf }
-    end
-
-    def dumpconfig
-      puts @config.pretty_inspect
     end
 
     # Creates a lists of files to copy for a host.

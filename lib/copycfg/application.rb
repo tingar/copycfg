@@ -30,11 +30,6 @@ module Copycfg::Application
         Copycfg::Config.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
       end
 
-      if options[:dumpconfig]
-        Copycfg::Config.dumpconfig
-        return 0
-      end
-
       if options[:netgroups]
         copy_netgroup options[:netgroups]
       end
@@ -80,10 +75,6 @@ module Copycfg::Application
           options[:configfile] = configfile
         end
 
-        opts.on('-d', '--dumpconfig', 'Dump YAML configuration file' ) do
-          options[:dumpconfig] = 1
-        end
-
         opts.on('-n', '--netgroup=val', 'Netgroup to copycfg-ify' ) do |netgroup|
           options[:netgroups] << netgroup
         end
@@ -112,7 +103,7 @@ module Copycfg::Application
       end
 
       # Ensure that we have at least one netgroup and we're not just resharing
-      if options[:netgroups].length <= 0 and not options[:share] and not options[:dumpconfig]
+      if options[:netgroups].length <= 0 and not options[:share]
         $stderr.puts "Error: at least one netgroup must be specified."
         puts opt_parser
         exit 1
