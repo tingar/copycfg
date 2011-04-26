@@ -20,7 +20,6 @@ module Copycfg::Application
 
       options = parse(args)
 
-      Copycfg.init
       Copycfg.logger.level = options[:verbosity]
 
       if options[:configfile]

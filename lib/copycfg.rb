@@ -16,10 +16,13 @@ module Copycfg
     # Allow other classes to use a single logger
     attr_reader :logger
 
-    def init
-      @logger = Logger.new(STDOUT)
-      @logger.level = Logger::ERROR
-      @logger.datetime_format = "%Y-%m-%d %H:%M:%S"
+    def logger
+      if @logger.nil?
+        @logger = Logger.new(STDOUT)
+        @logger.level = Logger::ERROR
+        @logger.datetime_format = "%Y-%m-%d %H:%M:%S"
+      end
+      @logger
     end
 
     # Loads configuration
