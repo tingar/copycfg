@@ -56,11 +56,7 @@ module Copycfg::Application
           Copycfg.logger.info { "Running copy on #{host}" }
           host = Copycfg::Host.new(host)
           host.files = Copycfg::Config.filelist(host.name)
-          begin
-            host.copy
-          rescue Net::SSH::AuthenticationFailed => e
-            Copycfg.logger.error { "Failed to copy #{host.name}: access denied for #{e}" }
-          end
+          host.copy
         end
 
       end

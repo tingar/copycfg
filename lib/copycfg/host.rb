@@ -15,8 +15,8 @@ class Copycfg::Host
   def initialize hostname
     @name       = hostname
     @files      = []
-    @destdir    = "#{Copycfg::Config["basedir"]}/hosts/#{@hostname}"
-    @backupdir  = "#{Copycfg::Config["basedir"]}/backups/#{@hostname}"
+    @destdir    = "#{Copycfg::Config["basedir"]}/hosts/#{@name}"
+    @backupdir  = "#{Copycfg::Config["basedir"]}/backups/#{@name}"
     # TODO Hardcoding this to use Copycfg::Config seems less than preferential
 
   end
@@ -44,15 +44,22 @@ class Copycfg::Host
 
   def copy
 
-    Net::SFTP.start(@name, Copycfg::Config["sftp"]["user"],
-                    :auth_methods => ["publickey"],
-                    :keys => [Copycfg::Config["sftp"]["key"]],
-                    :timeout => 1) do |sftp|
-      @files.each do | file |
+    begin
+      Net::SFTP.start(@name, Copycfg::Config["sftp"]["user"],
+                      :auth_methods => ["publickey"],
+                      :keys => [Copycfg::Config["sftp"]["key"]],
+                      :timeout => 1) do |sftp|
         Copycfg.logger.debug { "Connected to #{@name}" }
-        copyfile sftp, file
+        @files.each do | file |
+          copyfile sftp, file
+        end
       end
+    rescue Timeout::Error => e
+      Copycfg.logger.warn { "Unable to connect to #{@name}: #{e}" }
+    rescue Net::SSH::AuthenticationFailed => e
+      Copycfg.logger.warn { "Failed to copy #{@name}: access denied for #{e}" }
     end
+
   end
 
   private
@@ -62,20 +69,25 @@ class Copycfg::Host
 
     # Create base directory for file
     basedir = @destdir + File.dirname(file)
-    unless File.directory?(basedir) || mkdir_p(basedir)
+    unless File.directory?(basedir) || FileUtils.mkdir_p(basedir)
       Copycfg.logger.error { "Unable to create directory #{basedir}" }
       return
     end
 
-    # Stat file, copy file, recursively if necessary, and copy perms.
-    filestat = @sftp.stat! file
-    if filestat.directory?
-      sftp.download! file, "#{basedir}/#{file}", :recursive => true
-    else
-      sftp.download! file, "#{basedir}/#{file}"
+    begin
+      # Stat file, copy file, recursively if necessary, and copy perms.
+      filestat = sftp.stat! file
+      if filestat.directory?
+        sftp.download! file, "#{@destdir}/#{file}", :recursive => true
+      else
+        sftp.download! file, "#{@destdir}/#{file}"
+      end
+      FileUtils.chmod filestat.permissions, "#{@destdir}/#{file}"
+    rescue Net::SFTP::StatusException => e
+      Copycfg.logger.debug { "No such file: #{@name}:#{file}" }
+      return
     end
-    chmod filestats.permissions, "#{@savedir}/#{file}"
 
-    Copycfg.logger.debug { "Copied #{@savedir}/#{file}" }
+    Copycfg.logger.debug { "Copied #{@name}:#{file} to #{@destdir}/#{file}" }
   end
 end

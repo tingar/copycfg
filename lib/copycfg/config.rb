@@ -29,6 +29,7 @@ module Copycfg::Config
     def filelist host
       files = []
 
+      # Host specific entry in configuration file.
       if @config["hosts"][host]
         if @config["hosts"][host]["files"]
           files += @config["hosts"][host]["files"]
@@ -41,8 +42,11 @@ module Copycfg::Config
       end
 
       if files.empty?
+        Copycfg.logger.debug { "#{host} has no specific configuration files, using filegroup default" }
         files += @config["filegroups"]["default"]
       end
+
+      files
     end
 
     # Gives direct access to the yaml structure
