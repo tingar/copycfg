@@ -61,6 +61,13 @@ class Copycfg::Host
     File.exist? "#{@destdir}/.completed"
   end
 
+  def shared?
+    output  = %x{share}
+    pattern = %r{#{@destdir} sec=sys,ro=#{@name},anon=0}
+
+    true if output.match(pattern)
+  end
+
   def removeconfigs
     FileUtils.rm_r @destdir, :secure => true, :force => true
   end
@@ -86,6 +93,10 @@ class Copycfg::Host
   # Attempts to connect to a host and then run a copy on every file.
   def copy
 
+    if shared?
+      reshare = true
+      unshare
+    end
     backup
 
     begin
@@ -114,7 +125,10 @@ class Copycfg::Host
     if not completed?
       removeconfigs
       restore
+    else
+      share if reshare
     end
+
   end
 
   private
@@ -140,15 +154,14 @@ class Copycfg::Host
       end
       FileUtils.chmod filestat.permissions, "#{@destdir}/#{file}"
 
+      FileUtils.touch "#{@destdir}/.completed"
+      Copycfg.logger.debug { "Copied #{@name}:#{file} to #{@destdir}/#{file}" }
+
     rescue Net::SFTP::StatusException => e
       Copycfg.logger.debug { "No such file: #{@name}:#{file}" }
-      return
     rescue RuntimeError => e
       Copycfg.logger.warn { "Failed to copy #{@name}:#{file}: #{e}" }
-      return
     end
 
-    FileUtils.touch "#{@destdir}/.completed"
-    Copycfg.logger.debug { "Copied #{@name}:#{file} to #{@destdir}/#{file}" }
   end
 end

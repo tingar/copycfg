@@ -22,12 +22,13 @@ module Copycfg::Application
       Copycfg.logger.level = options[:verbosity]
       Copycfg.loadconfig options[:configfile]
 
-      case options[:action]
-      when "share"
+      if options[:actions].include? "share"
         Copycfg.shareall
-      when "unshare"
+      end
+      if options[:actions].include? "unshare"
         Copycfg.unshareall
-      when "copy"
+      end
+      if options[:actions].include? "copy"
         options[:netgroups].each { | ng | copy_netgroup ng }
         options[:hosts].each { | h | copy_host h }
       end
@@ -56,6 +57,7 @@ module Copycfg::Application
       options[:verbosity] = Logger::ERROR
       options[:netgroups] = []
       options[:hosts] = []
+      options[:actions] = []
 
       opt_parser = OptionParser.new do |opts|
         opts.banner = "#{$0} [options]"
@@ -65,11 +67,7 @@ module Copycfg::Application
                 "  unshare: unshare all configuration directories",
                 "  copy: copy configurations off the specified hosts and netgroups"
         ) do |action|
-          if options[:action]
-            raise ArgumentError, "Error: --action can only be used once"
-          else
-            options[:action] = action
-          end
+          options[:actions] << action
        end
 
        opts.on('-n', '--netgroup=val', 'Netgroup to copy configurations from' ) do |netgroup|
@@ -105,7 +103,7 @@ module Copycfg::Application
       end
 
       # Ensure that we have at least one netgroup and we're not just resharing
-      unless options[:action]
+      unless options[:actions]
         $stderr.puts "Error: no operation specified"
         puts opt_parser
         exit 1
