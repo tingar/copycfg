@@ -21,13 +21,7 @@ module Copycfg::Application
       options = parse(args)
 
       Copycfg.logger.level = options[:verbosity]
-
-      if options[:configfile]
-        Copycfg.loadconfig options[:configfile]
-      else
-        # TODO figure out a sensible place for a default config. Homedir?
-        Copycfg.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
-      end
+      Copycfg.loadconfig options[:configfile]
 
       if options[:netgroups]
         copy_netgroup options[:netgroups]
@@ -103,6 +97,14 @@ module Copycfg::Application
       # Ensure that we have at least one netgroup and we're not just resharing
       if options[:netgroups].length <= 0 and not options[:share]
         $stderr.puts "Error: at least one netgroup must be specified."
+        puts opt_parser
+        exit 1
+      end
+
+      # Ensure that a config was passed. This will be needed until a default
+      # config location is used.
+      if not options[:configfile]
+        $stderr.puts "Error: -c option must be passed"
         puts opt_parser
         exit 1
       end

@@ -6,3 +6,5 @@ Sharing:
   - Needs to be implemented
 Single host copying:
   - Needs to be implemented
+Configuration:
+  - Needs default configuration location
