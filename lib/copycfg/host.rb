@@ -10,13 +10,26 @@ require "net/sftp"
 class Copycfg::Host
 
   attr_reader :name
-  attr_writer :files
+  attr_accessor :files
 
-  def initialize hostname, basedir
+  def initialize hostname, basedir, sftpopts
     @name       = hostname
     @files      = []
+    @sftpopts   = sftpopts
     @destdir    = "#{@basedir}/hosts/#{@name}"
     @backupdir  = "#{@basedir}/backups/#{@name}"
+  end
+
+  def share
+    if File.exist? @destdir
+      %x{share -F nfs -o sec=sys,ro=#{@name},anon=0 #{@destdir} > /dev/null 2>&1}
+    end
+  end
+
+  def unshare
+    if File.exist? @destdir
+      %x{unshare "#{@destdir}" > /dev/null 2>&1}
+    end
   end
 
   # Creates a lists of files from copycfg yaml
@@ -40,73 +53,50 @@ class Copycfg::Host
     end
   end
 
-  # Creates a lists of files to copy for a host.
-  # This moves the burden of processing yaml from the host to the config
-  def filelist host, co
-    files = []
-
-    # Host specific entry in configuration file.
-    if @config["hosts"][host]
-      if @config["hosts"][host]["files"]
-        files += @config["hosts"][host]["files"]
-      end
-      if @config["hosts"][host]["filegroups"]
-        @config["hosts"][host]["filegroups"].each do | group |
-          files += @config["filegroups"][group]
-        end
-      end
-    end
-
-    if files.empty?
-      Copycfg.logger.debug { "#{host} has no specific configuration files, using filegroup default" }
-      files += @config["filegroups"]["default"]
-    end
-
-    files
+  def expired? days
+    if completed? and File.stat("#{@destdir}/.completed").ctime < (Time.now - 60*60*24*days)
   end
-  def share
-    raise NotImplementedError
+
+  def completed?
+    File.exist? "#{@destdir}/.completed"
+  end
+
+  def removeconfigs
+    FileUtils.rm_r @destdir, :secure => true, :force => true
   end
 
   def backup
-    raise NotImplementedError
-  end
-
-  def mkdirs
-
-    unless File.directory?(@destdir) || mkdir_p(@destdir)
-      Copycfg.logger.fatal { "Unable to create #{@destdir}" }
+    if completed?
+      FileUtils.cp_r "#{@destdir}/.", @backupdir, :preserve => true
     end
-
-    unless File.directory?(@backupdir) || mkdir_p(@destdir)
-      Copycfg.logger.fatal { "Unable to create #{@backupdir}" }
-    end
-
   end
-
 
   # Attempts to connect to a host and then run a copy on every file.
   def copy
 
     begin
-      Net::SFTP.start(@name, Copycfg.config["sftp"]["user"],
+      Net::SFTP.start(@name, @sftpopts["user"],
                       :auth_methods => ["publickey"],
-                      :keys => [Copycfg.config["sftp"]["key"]],
+                      :keys => [@sftpopts["key"]],
                       :timeout => 1) do |sftp|
+
         Copycfg.logger.debug { "Connected to #{@name}" }
         @files.each do | file |
           copyfile sftp, file
         end
       end
+
     rescue Timeout::Error => e
-      Copycfg.logger.warn { "Unable to connect to #{@name}: #{e}" }
+      Copycfg.logger.warn { "Timed out while to #{@name}: #{e}" }
     rescue Net::SSH::AuthenticationFailed => e
-      Copycfg.logger.warn { "Failed to copy #{@name}: access denied for #{e}" }
+      Copycfg.logger.warn { "Failed to connect to #{@name}: access denied for #{e}" }
     rescue RuntimeError => e
       Copycfg.logger.warn { "Failed to copy #{@name}: #{e}" }
-      return
     end
 
+    if not completed?
+      removeconfigs
+    end
   end
 
   private
@@ -140,7 +130,7 @@ class Copycfg::Host
       return
     end
 
+    FileUtils.touch "#{@destdir}/.completed"
     Copycfg.logger.debug { "Copied #{@name}:#{file} to #{@destdir}/#{file}" }
   end
-
 end

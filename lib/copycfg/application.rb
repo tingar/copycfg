@@ -38,7 +38,7 @@ module Copycfg::Application
       end
     end
 
-    def copy_netgroup netgroups
+    def copy_netgroup(netgroups)
 
       netgroups.each do | netgroupname |
 
@@ -48,7 +48,7 @@ module Copycfg::Application
 
         hosts.each do | host |
           Copycfg.logger.info { "Copying #{host}" }
-          host = Copycfg::Host.new(host, Copycfg.config["basedir"])
+          host = Copycfg::Host.new(host, Copycfg.config["basedir"], Copycfg.config["sftp"])
           host.files_from_yaml Copycfg.config
           host.copy
         end
@@ -57,8 +57,7 @@ module Copycfg::Application
     end
 
     def share
-      $stderr.puts "Copycfg::Application.share: not implemented"
-      exit 1
+      Copycfg.shareall
     end
 
     # Provide default arguments, parse args, and validate them
