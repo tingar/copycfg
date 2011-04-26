@@ -12,9 +12,10 @@ class Copycfg::Netgroup
   attr_reader :hosts
   attr_reader :name
 
-  def initialize netgroupname, auth
+  def initialize netgroupname, auth, base
     @name = netgroupname
     @auth = auth
+    @base = base
     @ldap = Net::LDAP.new(auth)
     @hosts = []
   end
@@ -27,7 +28,7 @@ class Copycfg::Netgroup
     attrs = %w[ nisNetgroupTriple memberNisNetgroup ]
 
     @ldap.open do
-      @ldap.search( :base => Copycfg::Config["ldap"]["base"],
+      @ldap.search( :base => @base,
                     :filter => filter,
                     :attributes => attrs) do | entry |
 
@@ -42,7 +43,7 @@ class Copycfg::Netgroup
         entry["memberNisNetgroup"].each do | member |
           # It's objects all the way down!
           # AKA create and query all member netgroups, and add their hosts.
-          @hosts += Copycfg::Netgroup.new(member, @auth).gethosts
+          @hosts += Copycfg::Netgroup.new(member, @auth, @base).gethosts
         end
 
       end

@@ -15,12 +15,57 @@ class Copycfg::Host
   def initialize hostname
     @name       = hostname
     @files      = []
-    @destdir    = "#{Copycfg::Config["basedir"]}/hosts/#{@name}"
-    @backupdir  = "#{Copycfg::Config["basedir"]}/backups/#{@name}"
-    # TODO Hardcoding this to use Copycfg::Config seems less than preferential
+    @destdir    = "#{Copycfg.config["basedir"]}/hosts/#{@name}"
+    @backupdir  = "#{Copycfg.config["basedir"]}/backups/#{@name}"
+    # TODO Hardcoding this seems less than preferential
 
   end
 
+  # Creates a lists of files from copycfg yaml
+  def files_from_yaml config
+
+    # Host specific entry in configuration file.
+    if config["hosts"][@host]
+      if config["hosts"][@host]["files"]
+        @files += config["hosts"][host]["files"]
+      end
+      if config["hosts"][@host]["filegroups"]
+        config["hosts"][@host]["filegroups"].each do | group |
+          @files += config["filegroups"][group]
+        end
+      end
+    end
+
+    if @files.empty?
+      Copycfg.logger.debug { "#{host} has no specific configuration files, using filegroup default" }
+      @files += config["filegroups"]["default"]
+    end
+  end
+
+  # Creates a lists of files to copy for a host.
+  # This moves the burden of processing yaml from the host to the config
+  def filelist host, co
+    files = []
+
+    # Host specific entry in configuration file.
+    if @config["hosts"][host]
+      if @config["hosts"][host]["files"]
+        files += @config["hosts"][host]["files"]
+      end
+      if @config["hosts"][host]["filegroups"]
+        @config["hosts"][host]["filegroups"].each do | group |
+          files += @config["filegroups"][group]
+        end
+      end
+    end
+
+    if files.empty?
+      Copycfg.logger.debug { "#{host} has no specific configuration files, using filegroup default" }
+      files += @config["filegroups"]["default"]
+    end
+
+    files
+  end
   def share
     raise NotImplementedError
   end
@@ -46,9 +91,9 @@ class Copycfg::Host
   def copy
 
     begin
-      Net::SFTP.start(@name, Copycfg::Config["sftp"]["user"],
+      Net::SFTP.start(@name, Copycfg.config["sftp"]["user"],
                       :auth_methods => ["publickey"],
-                      :keys => [Copycfg::Config["sftp"]["key"]],
+                      :keys => [Copycfg.config["sftp"]["key"]],
                       :timeout => 1) do |sftp|
         Copycfg.logger.debug { "Connected to #{@name}" }
         @files.each do | file |
@@ -99,4 +144,5 @@ class Copycfg::Host
 
     Copycfg.logger.debug { "Copied #{@name}:#{file} to #{@destdir}/#{file}" }
   end
+
 end

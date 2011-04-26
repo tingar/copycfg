@@ -24,10 +24,10 @@ module Copycfg::Application
       Copycfg.logger.level = options[:verbosity]
 
       if options[:configfile]
-        Copycfg::Config.loadconfig options[:configfile]
+        Copycfg.loadconfig options[:configfile]
       else
         # TODO figure out a sensible place for a default config. Homedir?
-        Copycfg::Config.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
+        Copycfg.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
       end
 
       if options[:netgroups]
@@ -43,14 +43,14 @@ module Copycfg::Application
 
       netgroups.each do | netgroupname |
 
-        netgroup = Copycfg::Netgroup.new(netgroupname, Copycfg::Config["ldap"]["connection"])
+        netgroup = Copycfg::Netgroup.new(netgroupname, Copycfg.config["ldap"]["connection"], Copycfg.config["ldap"]["base"])
         hosts = netgroup.gethosts
         Copycfg.logger.info { "Got #{hosts.size} host(s) from netgroup #{netgroup.name}" }
 
         hosts.each do | host |
-          Copycfg.logger.info { "Running copy on #{host}" }
+          Copycfg.logger.info { "Copying #{host}" }
           host = Copycfg::Host.new(host)
-          host.files = Copycfg::Config.filelist(host.name)
+          host.files_from_yaml Copycfg.config
           host.copy
         end
 
