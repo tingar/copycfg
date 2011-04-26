@@ -50,16 +50,20 @@ module Copycfg::Application
 
         netgroup = Copycfg::Netgroup.new(netgroupname, Copycfg::Config["ldap"]["connection"])
         hosts = netgroup.gethosts
+        Copycfg.logger.info { "Got #{hosts.size} host(s) from netgroup #{netgroup.name}" }
 
         hosts.each do | host |
+          Copycfg.logger.info { "Running copy on #{host}" }
           host = Copycfg::Host.new(host)
           host.files = Copycfg::Config.filelist(host.name)
-          host.copy
+          begin
+            host.copy
+          rescue Net::SSH::AuthenticationFailed => e
+            Copycfg.logger.error { "Failed to copy #{host.name}: access denied for #{e}" }
+          end
         end
 
       end
-
-      raise NotImplementedError
     end
 
     def share

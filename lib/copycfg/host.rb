@@ -44,17 +44,15 @@ class Copycfg::Host
 
   def copy
 
-    Net::SFTP.start(@name,
-                   Copycfg::Config["sftp"]["user"],
-                   :auth_methods => ["publickey"],
-                   :keys => [Copycfg::config["sftp"]["key"]],
-                   :timeout => 1
-                   ) do |sftp|
+    Net::SFTP.start(@name, Copycfg::Config["sftp"]["user"],
+                    :auth_methods => ["publickey"],
+                    :keys => [Copycfg::Config["sftp"]["key"]],
+                    :timeout => 1) do |sftp|
       @files.each do | file |
+        Copycfg.logger.debug { "Connected to #{@name}" }
         copyfile sftp, file
       end
     end
-    raise NotImplementedError
   end
 
   private
@@ -66,13 +64,18 @@ class Copycfg::Host
     basedir = @destdir + File.dirname(file)
     unless File.directory?(basedir) || mkdir_p(basedir)
       Copycfg.logger.error { "Unable to create directory #{basedir}" }
+      return
     end
 
     # Stat file, copy file, recursively if necessary, and copy perms.
     filestat = @sftp.stat! file
-    sftp.download! file, "#{basedir}/#{file}", :recursive => true
+    if filestat.directory?
+      sftp.download! file, "#{basedir}/#{file}", :recursive => true
+    else
+      sftp.download! file, "#{basedir}/#{file}"
+    end
     chmod filestats.permissions, "#{@savedir}/#{file}"
 
-    raise NotImplementedError
+    Copycfg.logger.debug { "Copied #{@savedir}/#{file}" }
   end
 end
