@@ -42,6 +42,7 @@ class Copycfg::Host
   end
 
 
+  # Attempts to connect to a host and then run a copy on every file.
   def copy
 
     begin
@@ -58,6 +59,9 @@ class Copycfg::Host
       Copycfg.logger.warn { "Unable to connect to #{@name}: #{e}" }
     rescue Net::SSH::AuthenticationFailed => e
       Copycfg.logger.warn { "Failed to copy #{@name}: access denied for #{e}" }
+    rescue RuntimeError => e
+      Copycfg.logger.warn { "Failed to copy #{@name}: #{e}" }
+      return
     end
 
   end
@@ -74,8 +78,9 @@ class Copycfg::Host
       return
     end
 
+    # Stat file, copy file, recursively if necessary, and copy perms.
+    # If anything goes wrong copying a single file, log it and return.
     begin
-      # Stat file, copy file, recursively if necessary, and copy perms.
       filestat = sftp.stat! file
       if filestat.directory?
         sftp.download! file, "#{@destdir}/#{file}", :recursive => true
@@ -83,8 +88,12 @@ class Copycfg::Host
         sftp.download! file, "#{@destdir}/#{file}"
       end
       FileUtils.chmod filestat.permissions, "#{@destdir}/#{file}"
+
     rescue Net::SFTP::StatusException => e
       Copycfg.logger.debug { "No such file: #{@name}:#{file}" }
+      return
+    rescue RuntimeError => e
+      Copycfg.logger.warn { "Failed to copy #{@name}:#{file}: #{e}" }
       return
     end
 
