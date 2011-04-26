@@ -4,7 +4,7 @@
 #
 # Provides for an individual host to copy
 
-require "FileUtils"
+require "fileutils"
 require "net/sftp"
 
 class Copycfg::Host

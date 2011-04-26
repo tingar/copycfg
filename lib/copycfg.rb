@@ -12,9 +12,8 @@ module Copycfg
 
     # Allow other classes to use a single logger
     attr_reader :logger
-    attr_accessor :loglevel
 
-    def initialize
+    def init
       @logger = Logger.new(STDOUT)
       @logger.level = Logger::ERROR
       @logger.datetime_format = "%Y-%m-%d %H:%M:%S"

@@ -1,7 +1,7 @@
 # Copycfg::Application
 # Computer Action Team
 # Maseeh College of Engineering and Computer Science
-# 
+#
 # This provides a singleton class that serves as the entry point for copycfg
 # as a standalone application
 
@@ -20,20 +20,26 @@ module Copycfg::Application
 
       options = parse(args)
 
-      Copycfg.loglevel = options[:verbosity]
+      Copycfg.init
+      Copycfg.logger.level = options[:verbosity]
 
       if options[:configfile]
         Copycfg::Config.loadconfig options[:configfile]
       else
-        # TODO figure out a sensible place for a default config. Homedir
+        # TODO figure out a sensible place for a default config. Homedir?
         Copycfg::Config.loadconfig File.expand_path(File.dirname(__FILE__) + "/copycfg.yaml")
       end
 
-      if options[:netgroups] 
+      if options[:dumpconfig]
+        Copycfg::Config.dumpconfig
+        return 0
+      end
+
+      if options[:netgroups]
         copy_netgroup options[:netgroups]
       end
 
-      if options[:share] 
+      if options[:share]
         share
       end
     end
@@ -68,10 +74,14 @@ module Copycfg::Application
       options[:netgroups]  = []
 
       opt_parser = OptionParser.new do |opts|
-        opts.banner = "#{$0} [options]" 
+        opts.banner = "#{$0} [options]"
 
         opts.on('-c', '--config=val', 'Location of YAML configuration file' ) do |configfile|
           options[:configfile] = configfile
+        end
+
+        opts.on('-d', '--dumpconfig', 'Dump YAML configuration file' ) do
+          options[:dumpconfig] = 1
         end
 
         opts.on('-n', '--netgroup=val', 'Netgroup to copycfg-ify' ) do |netgroup|
@@ -82,27 +92,27 @@ module Copycfg::Application
           options[:share] = true
         end
 
-        opts.on('-v', '--verbose', 'Increase verbosity' ) do 
+        opts.on('-v', '--verbose', 'Increase verbosity' ) do
           options[:verbosity] -= 1
         end
 
         opts.on('-h', '--help', 'Display this help') do
-          puts opts 
-          exit 
+          puts opts
+          exit
         end
 
-      end 
+      end
 
       # Attempt to parse things, explode if this fails.
-      begin 
+      begin
         opt_parser.parse! args
-      rescue 
+      rescue
         $stderr.puts $!
         exit 1
       end
 
       # Ensure that we have at least one netgroup and we're not just resharing
-      if options[:netgroups].length <= 0 and not options[:share]
+      if options[:netgroups].length <= 0 and not options[:share] and not options[:dumpconfig]
         $stderr.puts "Error: at least one netgroup must be specified."
         puts opt_parser
         exit 1
