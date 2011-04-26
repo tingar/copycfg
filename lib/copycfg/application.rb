@@ -8,7 +8,6 @@
 require "optparse"
 require "copycfg"
 require "copycfg/netgroup"
-require "copycfg/config"
 require "copycfg/host"
 
 module Copycfg::Application
