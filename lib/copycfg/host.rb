@@ -4,8 +4,10 @@
 #
 # Provides for an individual host to copy
 
+require "rubygems"
 require "fileutils"
 require "net/sftp"
+require "copycfg"
 
 class Copycfg::Host
 
